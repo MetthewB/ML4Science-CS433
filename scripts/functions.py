@@ -99,3 +99,22 @@ def display_styled_results(df, output_path, output_file, title):
     output_file_path = os.path.join(output_path, output_file)
     df.to_csv(output_file_path, index=False)
     print(f"Results saved to {output_file_path}")
+
+
+def select_denoiser(denoiser_name):
+    """
+    Select the filter function and its parameters based on the denoiser name.
+    
+    :param denoiser_name: The name of the denoiser ("Gaussian" or "Median")
+    :return: denoiser (denoiser function), denoiser_params (dictionary of parameters)
+    """
+    if denoiser_name == "Gaussian":
+        denoiser = gaussian_filter
+        denoiser_params = {'sigma': 2}  # Gaussian filter parameter
+    elif denoiser_name == "Median":
+        denoiser = median_filter
+        denoiser_params = {'size': 2}  # Median filter parameter
+    else:
+        raise ValueError("Unsupported denoiser.")
+    
+    return denoiser, denoiser_params
