@@ -1,6 +1,8 @@
 import os
 import pandas as pd
 from tqdm import tqdm
+import time
+import psutil
 from skimage.metrics import peak_signal_noise_ratio, structural_similarity
 from scipy.ndimage import gaussian_filter, median_filter
 
@@ -18,19 +20,22 @@ def get_paths():
     return data_path, output_path
 
 
-def process_images(data_path, num_images=120, filter_fn=None, **filter_params):
+def process_images(data_path, num_images=120, denoiser=None, **denoiser_params):
     """
-    Loop through each image and channel, apply the specified filter function, 
-    and compute PSNR and SSIM metrics.
+    Loop through each image and channel, apply the specified denoiser function, 
+    and compute PSNR, SSIM, runtime, and RAM usage metrics.
     
     :param data_path: Path to the image data
     :param num_images: Number of images to process
-    :param filter_fn: Filter function to apply (e.g., gaussian_filter, median_filter)
-    :param filter_params: Parameters to pass to the filter function (e.g., sigma for Gaussian)
-    :return: PSNR and SSIM metrics
+    :param denoiser: Denoiser to apply (e.g., gaussian_filter, median_filter)
+    :param denoiser_params: Parameters to pass to the denoiser (e.g., sigma for Gaussian)
+    :return: PSNR, SSIM, runtime, and RAM usage metrics
     """
     # Initialize lists to store results for each filter type and channel
-    filter_results = []
+    denoiser_results = []
+
+    # Get the current process for tracking RAM usage
+    process = psutil.Process()
     
     for i in tqdm(range(num_images), initial=1, total=num_images):
         image_index = str(i + 1).zfill(3)
@@ -42,65 +47,83 @@ def process_images(data_path, num_images=120, filter_fn=None, **filter_params):
             ground_truth_img = ground_truth(image_channel)
             sampled_img = sample_image(image_channel)
 
-            # Apply the filter (using filter_fn passed in, such as gaussian_filter)
-            filtered_img = filter_fn(sampled_img, **filter_params)  # Apply the filter here
+            # Measure the start time and RAM before processing
+            start_time = time.time()
+            ram_before = process.memory_info().rss / (1024 ** 2)  # RAM in MB
+
+            # Apply the denoiser
+            denoised_img = denoiser(sampled_img, **denoiser_params)  # Apply the filter here
+
+            # Measure the end time and RAM after processing
+            end_time = time.time()
+            ram_after = process.memory_info().rss / (1024 ** 2)  # RAM in MB
+
+            runtime = end_time - start_time
+            ram_usage = ram_after - ram_before
+
+            # Compute data range
             data_range_img = data_range(ground_truth_img)
 
             # Calculate PSNR and SSIM
-            psnr_filtered = peak_signal_noise_ratio(ground_truth_img, filtered_img, data_range=data_range_img)
-            ssim_filtered = structural_similarity(ground_truth_img, filtered_img, data_range=data_range_img)
+            psnr_denoised = peak_signal_noise_ratio(ground_truth_img, denoised_img, data_range=data_range_img)
+            ssim_denoised = structural_similarity(ground_truth_img, denoised_img, data_range=data_range_img)
 
-            # Store results
-            filter_results.append([image_index, f"Channel {channel}", psnr_filtered, ssim_filtered])
+            # Store results including runtime and RAM usage
+            denoiser_results.append([image_index, f"{channel}", psnr_denoised, ssim_denoised, runtime, ram_usage])
     
-    return filter_results
+    return denoiser_results
 
 
-def save_results(filter_results, output_path, filter_name="Custom Filter"):
-    """Save results to a CSV file for the specified filter."""
+def save_results(denoiser_results, output_path, denoiser_name="Custom Denoiser"):
+    """Save results to a CSV file for the specified denoiser."""
     # Create DataFrame
-    filter_df = pd.DataFrame(filter_results, columns=['ImageIndex', 'Channel', 'PSNR', 'SSIM'])
+    denoiser_df = pd.DataFrame(denoiser_results, columns=['ImageIndex', 'Channel', 'PSNR', 'SSIM', 'Runtime', 'RAM Usage'])
 
     # Create output folder if it doesn't exist
     if not os.path.exists(output_path):
         os.makedirs(output_path)
 
     # Save CSV file with the filter name
-    filter_df.to_csv(os.path.join(output_path, f'{filter_name}_filter_results.csv'), index=False)
+    denoiser_df.to_csv(os.path.join(output_path, f'{denoiser_name}_denoiser_results.csv'), index=False)
 
-    return filter_df
+    return denoiser_df
 
 
-def compute_averages(filter_df, filter_name="Custom Filter"):
-    """Compute average PSNR and SSIM for each channel and filter type."""
-    channels = ['Channel 0', 'Channel 1', 'Channel 2']
-    averages = {'FilterType': [], 'Channel': [], 'Average PSNR': [], 'Average SSIM': []}
+def compute_averages(denoiser_df, denoiser_name="Custom Denoiser"):
+    """Compute average PSNR, SSIM, Runtime, and RAM Usage for each channel and denoiser type."""
+    channels = denoiser_df['Channel'].unique()  # Get unique channel values from the DataFrame
+    averages = {'DenoiserType': [], 'Channel': [], 'Average PSNR': [], 'Average SSIM': [], 'Average Runtime': [], 'Average RAM Usage': []}
 
     for channel in channels:
-        # Filter averages for the given filter function
-        averages['FilterType'].append(filter_name)
-        averages['Channel'].append(channel[-1])  # Append channel index only
-        averages['Average PSNR'].append(filter_df[filter_df['Channel'] == channel]['PSNR'].mean())
-        averages['Average SSIM'].append(filter_df[filter_df['Channel'] == channel]['SSIM'].mean())
+        # Filter DataFrame for the given channel
+        channel_df = denoiser_df[denoiser_df['Channel'] == channel]
+        
+        # Append averages
+        averages['DenoiserType'].append(denoiser_name)
+        averages['Channel'].append(channel)  # Store channel index
+        averages['Average PSNR'].append(channel_df['PSNR'].mean())
+        averages['Average SSIM'].append(channel_df['SSIM'].mean())
+        averages['Average Runtime'].append(channel_df['Runtime'].mean())
+        averages['Average RAM Usage'].append(channel_df['RAM Usage'].mean())
     
     avg_results_df = pd.DataFrame(averages)
     return avg_results_df
 
 
-def select_filter(filter_name):
+def select_denoiser(denoiser_name):
     """
-    Select the filter function and its parameters based on the filter name.
+    Select the filter function and its parameters based on the denoiser name.
     
-    :param filter_name: The name of the filter ("Gaussian" or "Median")
-    :return: filter_fn (filter function), filter_params (dictionary of parameters)
+    :param denoiser_name: The name of the denoiser ("Gaussian" or "Median")
+    :return: denoiser (denoiser function), denoiser_params (dictionary of parameters)
     """
-    if filter_name == "Gaussian":
-        filter_fn = gaussian_filter
-        filter_params = {'sigma': 2}  # Gaussian filter parameter
-    elif filter_name == "Median":
-        filter_fn = median_filter
-        filter_params = {'size': 2}  # Median filter parameter
+    if denoiser_name == "Gaussian":
+        denoiser = gaussian_filter
+        denoiser_params = {'sigma': 2}  # Gaussian filter parameter
+    elif denoiser_name == "Median":
+        denoiser = median_filter
+        denoiser_params = {'size': 2}  # Median filter parameter
     else:
-        raise ValueError("Unsupported filter function.")
+        raise ValueError("Unsupported denoiser.")
     
-    return filter_fn, filter_params
+    return denoiser, denoiser_params
