@@ -1,4 +1,15 @@
+import os
 import numpy as np
+
+def get_paths():
+    """
+    Returns the data and output paths relative to the current working directory.
+    
+    :return: A tuple (data_path, output_path)
+    """
+    data_path = os.path.abspath(os.path.join(os.getcwd(), '..', 'data')) + '/'
+    output_path = os.path.abspath(os.path.join(os.getcwd(), '..', 'output')) + '/'
+    return data_path, output_path
 
 def load_image(path_to_data, image_path):
     """Load a .npy image file from the specified path."""
