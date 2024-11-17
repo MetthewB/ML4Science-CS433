@@ -4,6 +4,7 @@ from tqdm import tqdm
 import time
 import psutil
 from skimage.metrics import peak_signal_noise_ratio, structural_similarity
+from skimage.restoration import denoise_tv_chambolle, denoise_wavelet, denoise_nl_means
 from scipy.ndimage import gaussian_filter, median_filter
 
 from helpers import *
@@ -14,7 +15,7 @@ def select_denoiser(denoiser_name):
     """
     Select the filter function and its parameters based on the denoiser name.
     
-    :param denoiser_name: The name of the denoiser ("Gaussian" or "Median")
+    :param denoiser_name: The name of the denoiser ("Gaussian", "Median", "TV", "Wavelet", or "NL-Means")
     :return: denoiser (denoiser function), denoiser_params (dictionary of parameters)
     """
     if denoiser_name == "Gaussian":
@@ -23,6 +24,15 @@ def select_denoiser(denoiser_name):
     elif denoiser_name == "Median":
         denoiser = median_filter
         denoiser_params = {'size': 2}  # Median filter parameter
+    elif denoiser_name == "TV-Chambolle":
+        denoiser = denoise_tv_chambolle
+        denoiser_params = {'weight': 0.1}  # TV denoiser parameter
+    elif denoiser_name == "Wavelet":
+        denoiser = denoise_wavelet
+        denoiser_params = {}  # Use default parameters with no changes
+    elif denoiser_name == "NL-Means":
+        denoiser = denoise_nl_means
+        denoiser_params = {}  # Use default parameters with no changes
     else:
         raise ValueError("Unsupported denoiser.")
     
@@ -75,6 +85,54 @@ def process_images(data_path, num_images=120, denoiser=None, disable_progress=Fa
     return denoiser_results
 
 
+def process_with_denoiser(denoiser_name, data_path, num_images, parameter_ranges, disable_progress):
+    """
+    Processes images with the specified denoiser.
+    
+    :param denoiser_name: Name of the denoiser ("Gaussian", "Median", etc.)
+    :param data_path: Path to the dataset.
+    :param num_images: Number of images to process.
+    :param parameter_ranges: Dictionary defining parameter ranges for each denoiser.
+    :param disable_progress: Whether to disable progress bar.
+    :return: Results DataFrame and output filename.
+    """
+    all_results = []
+
+    # Select denoiser and parameters
+    denoiser, denoiser_params = select_denoiser(denoiser_name)
+    param_config = parameter_ranges[denoiser_name]
+
+    if param_config["values"]:  # Denoisers with tunable parameters
+        param_name = param_config["param_name"]
+        for value in tqdm(param_config["values"], disable=disable_progress):
+            denoiser_params = {param_name: value}
+            denoiser_results = process_images(
+                data_path, num_images=num_images, denoiser=denoiser, disable_progress=disable_progress, **denoiser_params
+            )
+            for result in denoiser_results:
+                result.extend([denoiser_name, f"{param_name} = {value}"])
+            all_results.extend(denoiser_results)
+        result_filename = f"{denoiser_name}_denoiser_results.csv"
+
+    else:  # Denoisers with default parameters
+        denoiser_params = {}
+        denoiser_results = process_images(
+            data_path, num_images=num_images, denoiser=denoiser, disable_progress=disable_progress, **denoiser_params
+        )
+        for result in denoiser_results:
+            result.extend([denoiser_name, "Default parameters"])
+        all_results.extend(denoiser_results)
+        result_filename = f"{denoiser_name}_denoiser_results_default.csv"
+
+    # Convert results to a DataFrame
+    results_df = pd.DataFrame(all_results, columns=[
+        'ImageIndex', 'Channel', 'PSNR', 'SI-PSNR', 'SSIM', 'Runtime', 'RAM Usage', 'DenoiserType', 'Parameter'
+    ])
+    results_df = results_df[['DenoiserType', 'Parameter', 'ImageIndex', 'Channel', 
+                             'PSNR', 'SI-PSNR', 'SSIM', 'Runtime', 'RAM Usage']]
+    return results_df, result_filename
+
+
 def compute_averages(results_df):
     """
     Compute averages for each combination of denoiser and parameter.
@@ -90,7 +148,6 @@ def compute_averages(results_df):
         .mean()
         .reset_index(drop=True)
     )
-
 
 
 def display_styled_results(df, output_path, output_file, title):
