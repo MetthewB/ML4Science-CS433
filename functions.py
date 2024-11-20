@@ -7,8 +7,14 @@ from skimage.metrics import peak_signal_noise_ratio, structural_similarity
 from skimage.restoration import denoise_tv_chambolle, denoise_wavelet, denoise_nl_means
 from scipy.ndimage import gaussian_filter, median_filter
 
-from helpers import *
-from metrics import scale_invariant_psnr
+import sys, os
+from IPython.display import display
+
+from n2v.denoise_n2v import *
+
+
+from scripts.helpers import *
+from scripts.metrics import scale_invariant_psnr
 
 
 def select_denoiser(denoiser_name):
@@ -33,13 +39,16 @@ def select_denoiser(denoiser_name):
     elif denoiser_name == "NL-Means":
         denoiser = denoise_nl_means
         denoiser_params = {}  # Use default parameters with no changes
+    elif denoiser_name == "Noise2Void":
+        denoiser = denoise_n2v
+        denoiser_params = {}  # Use default parameters with no changes
     else:
         raise ValueError("Unsupported denoiser.")
     
     return denoiser, denoiser_params
 
 
-def process_images(data_path, num_images=120, denoiser=None, disable_progress=False, **denoiser_params):
+def process_images(data_path, num_images=1, denoiser=None, disable_progress=False, **denoiser_params):
     """
     Loop through each image and channel, apply the specified denoiser function, 
     and compute PSNR, SI-PSNR, SSIM, runtime, and RAM usage metrics.
@@ -55,10 +64,12 @@ def process_images(data_path, num_images=120, denoiser=None, disable_progress=Fa
     process = psutil.Process()  # For monitoring memory usage
 
     for i in tqdm(range(num_images), disable=disable_progress):
+        print(f"Nb images : {i}")
         image_index = str(i + 1).zfill(3)
-        for channel in range(3):
+        for channel in range(1):
+            print(f"Nb channel : {channel}")
             # Load image
-            image_channel = load_image(data_path, f'Image{image_index}/wf_channel{channel}.npy')
+            image_channel = load_image(data_path, 'Image001/data.npy') #load_image(data_path, f'Image{image_index}/wf_channel{channel}.npy')
             
             # Generate ground truth and sample image
             ground_truth_img = ground_truth(image_channel)
@@ -67,7 +78,8 @@ def process_images(data_path, num_images=120, denoiser=None, disable_progress=Fa
             # Measure runtime and memory usage
             start_time = time.time()
             ram_before = process.memory_info().rss / (1024 ** 2)  # RAM in MB
-            denoised_img = denoiser(sampled_img, **denoiser_params)
+            denoised_img =  denoise_n2v(sampled_img)#denoiser(sampled_img, **denoiser_params)
+            print(f"Denoised img : {denoised_img.shape}")
             runtime = time.time() - start_time
             ram_after = process.memory_info().rss / (1024 ** 2)  # RAM in MB
 

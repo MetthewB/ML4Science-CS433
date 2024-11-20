@@ -7,8 +7,7 @@ This module contains various metrics and a metrics tracking class for evaluating
 from typing import Callable, Optional, Union
 import numpy as np
 import torch
-from skimage.metrics import peak_signal_noise_ratio, structural_similarity
-from torchmetrics.image import MultiScaleStructuralSimilarityIndexMeasure
+from skimage.metrics import peak_signal_noise_ratio
 
 
 # Utility Functions

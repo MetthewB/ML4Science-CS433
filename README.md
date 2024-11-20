@@ -10,14 +10,27 @@ The project is organized into the following structure:
 project/
 │
 ├── data/                # Folder containing image data
-│   ├── Image001/        # Folder for Image001
-│   │   ├── wf_channel0.npy   # Image data for channel 0
-│   │   ├── wf_channel1.npy   # Image data for channel 1
-│   │   ├── wf_channel2.npy   # Image data for channel 2
-│   │
-│   ├── Image002/        # Folder for Image002 (and so on up to Image120)
-│   ├── ...
-│   ├── Image120/
+   ├── channel0/ 
+   │   ├── Image001/        # Folder for Image001
+   │   │   ├── wf_channel0.npz   # Image data for channel 0
+   │   │
+   │   ├── Image002/        # Folder for Image002 (and so on up to Image120)
+   │   ├── ...
+   │   ├── Image120/
+   ├── channel1/ 
+   │   ├── Image001/        # Folder for Image001
+   │   │   ├── wf_channel1.npz   # Image data for channel 1
+   │   │
+   │   ├── Image002/        # Folder for Image002 (and so on up to Image120)
+   │   ├── ...
+   │   ├── Image120/
+   ── channel2/ 
+   │   ├── Image001/        # Folder for Image001
+   │   │   ├── wf_channel2.npz   # Image data for channel 2
+   │   │
+   │   ├── Image002/        # Folder for Image002 (and so on up to Image120)
+   │   ├── ...
+   │   ├── Image120/
 │
 ├── output/              # Folder for saving output results
 │   ├── gaussian_filter_results.csv  # PSNR and SSIM results for Gaussian filter

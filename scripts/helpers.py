@@ -7,8 +7,10 @@ def get_paths():
     
     :return: A tuple (data_path, output_path)
     """
-    data_path = os.path.abspath(os.path.join(os.getcwd(), '..', 'data')) + '/'
-    output_path = os.path.abspath(os.path.join(os.getcwd(), '..', 'output')) + '/'
+    data_path = '/Users/gattimartina/Documents/EPFL/Master/MA1/ML/projects/ML4Science-CS433/data/'
+    output_path = '/Users/gattimartina/Documents/EPFL/Master/MA1/ML/projects/ML4Science-CS433/output/'
+    # data_path = os.path.abspath(os.path.join(os.getcwd(), '..', 'data')) + '/'
+    # output_path = os.path.abspath(os.path.join(os.getcwd(), '..', 'output')) + '/'
     return data_path, output_path
 
 def load_image(path_to_data, image_path):
