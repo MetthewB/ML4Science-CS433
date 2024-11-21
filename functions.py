@@ -69,17 +69,19 @@ def process_images(data_path, num_images=1, denoiser=None, disable_progress=Fals
         for channel in range(1):
             print(f"Nb channel : {channel}")
             # Load image
-            image_channel = load_image(data_path, 'Image001/data.npy') #load_image(data_path, f'Image{image_index}/wf_channel{channel}.npy')
+            image_channel = load_image(data_path, f'channel{channel}/Image{image_index}/wf_channel{channel}.npy')
             
             # Generate ground truth and sample image
             ground_truth_img = ground_truth(image_channel)
-            sampled_img = sample_image(image_channel)
-
+            
+            sampled_img = normalize_image(sample_image(image_channel))
+            
             # Measure runtime and memory usage
             start_time = time.time()
             ram_before = process.memory_info().rss / (1024 ** 2)  # RAM in MB
-            denoised_img =  denoise_n2v(sampled_img)#denoiser(sampled_img, **denoiser_params)
-            print(f"Denoised img : {denoised_img.shape}")
+            
+            denoised_img =  normalize_image(denoise_n2v(sampled_img)) #denoiser(sampled_img, **denoiser_params)
+            
             runtime = time.time() - start_time
             ram_after = process.memory_info().rss / (1024 ** 2)  # RAM in MB
 
@@ -89,6 +91,10 @@ def process_images(data_path, num_images=1, denoiser=None, disable_progress=Fals
             ssim_denoised = structural_similarity(ground_truth_img, denoised_img, data_range=data_range(ground_truth_img))
             ram_usage = ram_after - ram_before
 
+            print(f"PSNR : {psnr_denoised}")
+            print(f"SI-PSNR : {si_psnr_denoised}")
+            print(f"SSIM : {ssim_denoised}")
+            
             # Append results
             denoiser_results.append([
                 image_index, f"{channel}", psnr_denoised, si_psnr_denoised, ssim_denoised, runtime, ram_usage

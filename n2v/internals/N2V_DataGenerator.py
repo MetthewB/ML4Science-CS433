@@ -1,3 +1,11 @@
+# @inproceedings{krull2019noise2void,
+#   title={Noise2void-learning denoising from single noisy images},
+#   author={Krull, Alexander and Buchholz, Tim-Oliver and Jug, Florian},
+#   booktitle={Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition},
+#   pages={2129--2137},
+#   year={2019}
+# }
+
 import numpy as np
 from os.path import join
 from glob import glob

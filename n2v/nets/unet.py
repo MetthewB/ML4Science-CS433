@@ -1,3 +1,11 @@
+# @inproceedings{krull2019noise2void,
+#   title={Noise2void-learning denoising from single noisy images},
+#   author={Krull, Alexander and Buchholz, Tim-Oliver and Jug, Florian},
+#   booktitle={Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition},
+#   pages={2129--2137},
+#   year={2019}
+# }
+
 from __future__ import print_function, unicode_literals, absolute_import, division
 
 from tensorflow.keras.layers import Input, Conv2D, Conv3D, Activation, Lambda
