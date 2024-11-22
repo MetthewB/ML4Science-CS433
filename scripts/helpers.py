@@ -7,10 +7,14 @@ def get_paths():
     
     :return: A tuple (data_path, output_path)
     """
-    data_path = '/Users/gattimartina/Documents/EPFL/Master/MA1/ML/projects/ML4Science-CS433/data/'
-    output_path = '/Users/gattimartina/Documents/EPFL/Master/MA1/ML/projects/ML4Science-CS433/output/'
-    # data_path = os.path.abspath(os.path.join(os.getcwd(), '..', 'data')) + '/'
-    # output_path = os.path.abspath(os.path.join(os.getcwd(), '..', 'output')) + '/'
+    
+    # Get the directory of the current script
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+
+    # Construct the path to the 'data' directory
+    data_path = os.path.abspath(os.path.join(script_dir, '..', 'data')) + '/'
+    output_path = os.path.abspath(os.path.join(script_dir, '..', 'output')) + '/'
+    
     return data_path, output_path
 
 def normalize_image(image): 

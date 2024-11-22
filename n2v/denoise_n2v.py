@@ -27,13 +27,13 @@ def denoise_n2v(single_image):
     config = N2VConfig(
         train_patches,
         unet_kern_size=3,
-        train_steps_per_epoch=300,
-        train_epochs=5,
+        train_steps_per_epoch=100, # see more data during each epoch
+        train_epochs=5, # train model for longer period 
         train_loss='mse',
         batch_norm=True,
-        train_batch_size=4,
+        train_batch_size=4, # change it, larger batch size can stabilize training
         n2v_perc_pix=0.198,  # Suggested value
-        n2v_patch_shape=(64, 64),
+        n2v_patch_shape=(64, 64), # can change the patch sahpe if images are large, can help model learn better features 
         n2v_manipulator='uniform_withCP',
         n2v_neighborhood_radius=5,
     )

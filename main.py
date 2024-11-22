@@ -1,4 +1,13 @@
+import sys
+import os
+
+# Add the 'scripts' directory to the system path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'scripts')))
+
+# Now you can import the functions module
 from functions import *
+from helpers import *
+
 
 # Define global parameter ranges
 PARAMETER_RANGES = {
