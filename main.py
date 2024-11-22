@@ -21,7 +21,7 @@ def main():
     denoiser_name = "Noise2Void"  # "Gaussian", "Median", "TV-Chambolle", "Wavelet", "NL-Means", or "Noise2Void"
 
     # Process images with the chosen denoiser
-    results_df, result_filename = process_with_denoiser(denoiser_name, data_path, num_images=40, parameter_ranges=PARAMETER_RANGES, disable_progress=disable_progress)
+    results_df, result_filename = process_with_denoiser(denoiser_name, data_path, num_images=120, parameter_ranges=PARAMETER_RANGES, disable_progress=disable_progress)
 
     # Save and display results
     display_styled_results(results_df, output_path, result_filename, title=f"{denoiser_name} Denoiser Results")

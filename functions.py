@@ -48,7 +48,7 @@ def select_denoiser(denoiser_name):
     return denoiser, denoiser_params
 
 
-def process_images(data_path, num_images=1, denoiser=None, disable_progress=False, **denoiser_params):
+def process_images(data_path, num_images, denoiser=None, disable_progress=False, **denoiser_params):
     """
     Loop through each image and channel, apply the specified denoiser function, 
     and compute PSNR, SI-PSNR, SSIM, runtime, and RAM usage metrics.
@@ -64,9 +64,10 @@ def process_images(data_path, num_images=1, denoiser=None, disable_progress=Fals
     process = psutil.Process()  # For monitoring memory usage
 
     for i in tqdm(range(num_images), disable=disable_progress):
-        print(f"Nb images : {i}")
-        image_index = str(i + 1).zfill(3)
         for channel in range(1):
+            print(f"Nb images : {i}")
+            image_index = str(i + 1).zfill(3)
+            
             print(f"Nb channel : {channel}")
             # Load image
             image_channel = load_image(data_path, f'channel{channel}/Image{image_index}/wf_channel{channel}.npy')
@@ -141,6 +142,8 @@ def process_with_denoiser(denoiser_name, data_path, num_images, parameter_ranges
             result.extend([denoiser_name, "Default parameters"])
         all_results.extend(denoiser_results)
         result_filename = f"{denoiser_name}_denoiser_results_default.csv"
+
+                
 
     # Convert results to a DataFrame
     results_df = pd.DataFrame(all_results, columns=[

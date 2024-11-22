@@ -27,7 +27,7 @@ def denoise_n2v(single_image):
     config = N2VConfig(
         train_patches,
         unet_kern_size=3,
-        train_steps_per_epoch=100,
+        train_steps_per_epoch=300,
         train_epochs=5,
         train_loss='mse',
         batch_norm=True,
