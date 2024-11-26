@@ -7,7 +7,6 @@ def get_paths():
     
     :return: A tuple (data_path, output_path)
     """
-    
     # Get the directory of the current script
     script_dir = os.path.dirname(os.path.abspath(__file__))
 
