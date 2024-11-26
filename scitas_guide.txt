@@ -1,0 +1,42 @@
+1. Connect to Scitas via ssh 
+    $ ssh -X username@izar.hpc.epfl.ch
+
+    > Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+    > username@izar.hpc.epfl.ch's password: # Set password
+
+2. Upload files to Scitas directory
+    $ scp path/to/file username@izar.hpc.epfl.ch:/home/username/
+
+3. List all files in directory
+    $ ls
+
+4. Create job (sbatch file)
+    Create a sbatch file `job_name.sbatch` as follows:
+
+        #!/bin/bash
+        #SBATCH --job-name=JOB_NAME
+        #SBATCH --output=output_%j.log
+
+        #SBATCH --time=01:00:00                    # Time limit (hh:mm:ss) (optional)
+        #SBATCH --ntasks=1                         # Number of tasks (optional)
+        #SBATCH --cpus-per-task=4                  # Number of CPU cores per task (optional)
+        #SBATCH --mem=16G                          # Memory allocation (optional)
+        #SBATCH --partition=cpu                    # Partition to use (e.g., cpu, gpu) (optional)
+
+        # Scripts to run
+        python3 script.py
+
+5. Submit job
+    $ sbatch job.sbatch
+    > Submitted batch job JOB_ID
+
+6. Check job status
+    $ squeue # General info
+    $ scontrol -d show job JOB_ID # All info
+    $ Sjob JOB_ID # Info about finished job
+
+7. Cancel jobs 
+    $ scancel JOBID # Cancel specific job
+    $ scancel -u $USER -t PENDING # Cancel all jobs that are not yet running
+    $ scancel -u $USER # Cancel all jobs
+
