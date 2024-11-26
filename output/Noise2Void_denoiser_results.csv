@@ -1,2 +1,2 @@
 DenoiserType,Parameter,ImageIndex,Channel,PSNR,SI-PSNR,SSIM,Runtime,RAM Usage
-Noise2Void,"{'train_steps_per_epoch': 100, 'train_epochs': 5, 'train_batch_size': 4, 'n2v_perc_pix': 0.198, 'n2v_patch_shape': (64, 64)}",001,0,20.46017575782884,26.489670551323737,0.7560640825574351,62.90651893615723,-251.265625
+Noise2Void,"{'train_steps_per_epoch': 100, 'train_epochs': 5, 'train_batch_size': 4, 'n2v_perc_pix': 0.198, 'n2v_patch_shape': (64, 64)}",001,0,19.902609469860714,28.523949680533395,0.7732285882448319,33.924758195877075,-132.5625

@@ -55,7 +55,7 @@ def select_denoiser(denoiser_name):
 
 
 
-def process_with_denoiser(denoiser_name, data_path, num_images, parameter_ranges, disable_progress):
+def process_with_denoiser(denoiser_name, data_path, nb_images, nb_channels, parameter_ranges, disable_progress):
     """
     Processes images with the specified denoiser.
     
@@ -83,7 +83,7 @@ def process_with_denoiser(denoiser_name, data_path, num_images, parameter_ranges
             denoiser_params = dict(zip(param_names, values))
 
             denoiser_results = process_images(
-                data_path, num_images=num_images, denoiser=denoise_n2v, disable_progress=disable_progress, **denoiser_params
+                data_path, nb_images=nb_images, nb_channels=nb_channels, denoiser=denoise_n2v, disable_progress=disable_progress, **denoiser_params
             )
 
             # Evaluate and store the results
@@ -97,7 +97,7 @@ def process_with_denoiser(denoiser_name, data_path, num_images, parameter_ranges
         for value in tqdm(param_config["values"], disable=disable_progress):
             denoiser_params = {param_name: value}
             denoiser_results = process_images(
-                data_path, num_images=num_images, denoiser=denoiser, disable_progress=disable_progress, **denoiser_params
+                data_path, nb_images=nb_images, nb_channels=nb_channels, denoiser=denoiser, disable_progress=disable_progress, **denoiser_params
             )
             for result in denoiser_results:
                 result.extend([denoiser_name, f"{param_name} = {value}"])
@@ -107,7 +107,7 @@ def process_with_denoiser(denoiser_name, data_path, num_images, parameter_ranges
     else:  # Denoisers with default parameters
         denoiser_params = {}
         denoiser_results = process_images(
-            data_path, num_images=num_images, denoiser=denoiser, disable_progress=disable_progress, **denoiser_params
+            data_path, nb_images=nb_images, nb_channels=nb_channels, denoiser=denoiser, disable_progress=disable_progress, **denoiser_params
         )
         for result in denoiser_results:
             result.extend([denoiser_name, "Default parameters"])
@@ -124,7 +124,7 @@ def process_with_denoiser(denoiser_name, data_path, num_images, parameter_ranges
     return results_df, result_filename
 
 
-def process_images(data_path, num_images, denoiser=None, disable_progress=False, **denoiser_params):
+def process_images(data_path, nb_images, nb_channels, denoiser=None, disable_progress=False, **denoiser_params):
     """
     Loop through each image and channel, apply the specified denoiser function, 
     and compute PSNR, SI-PSNR, SSIM, runtime, and RAM usage metrics.
@@ -136,37 +136,33 @@ def process_images(data_path, num_images, denoiser=None, disable_progress=False,
     :param denoiser_params: Parameters to pass to the denoiser (e.g., sigma for Gaussian)
     :return: Metrics results including PSNR, SI-PSNR, SSIM, runtime, and RAM usage
     """
-    log.info(f"Processing images from {data_path} with {num_images} images")
+    log.info(f"Processing images from {data_path} with {nb_images} images")
     denoiser_results = []
     process = psutil.Process()  # For monitoring memory usage
 
-    for i in tqdm(range(num_images)):
-        for channel in range(1):
-            # print(f"Nb images : {i}")
+    for channel in tqdm(range(nb_channels), desc="Channels", disable=disable_progress):
+        for i in tqdm(range(nb_images), desc=f"Images in channel {channel}", disable=disable_progress, leave=False):
             image_index = str(i + 1).zfill(3)
             log.info(f"Processing image {image_index}, channel {channel}")
-            
-            # print(f"Nb channel : {channel}")
+
             # Load image
             image_path = f'channel{channel}/Image{image_index}/wf_channel{channel}.npy'
             full_image_path = os.path.join(data_path, image_path)
             image = np.load(full_image_path)
-            log.info(f"Loaded image from {full_image_path}")
-            
+            log.debug(f"Loaded image from {full_image_path}")
+
             # Generate ground truth and sample image
             ground_truth_img = ground_truth(image)
-            
             sampled_img = normalize_image(sample_image(image))
-            
+
             # Measure runtime and memory usage
-            
             ram_before = process.memory_info().rss / (1024 ** 2)  # RAM in MB
             start_time = time.time()
-            denoised_img = normalize_image(denoiser(sampled_img, **denoiser_params)) #normalize_image(denoise_n2v(sampled_img))
+            denoised_img = normalize_image(denoiser(sampled_img, **denoiser_params))
             runtime = time.time() - start_time
             ram_after = process.memory_info().rss / (1024 ** 2)  # RAM in MB
             log.info(f"Denoised image in {runtime:.2f} seconds")
-            
+
             # Calculate metrics
             psnr_denoised = peak_signal_noise_ratio(ground_truth_img, denoised_img, data_range=data_range(ground_truth_img))
             si_psnr_denoised = scale_invariant_psnr(ground_truth_img, denoised_img)
@@ -174,15 +170,11 @@ def process_images(data_path, num_images, denoiser=None, disable_progress=False,
             ram_usage = ram_after - ram_before
             log.info(f"Computed metrics: PSNR={psnr_denoised:.2f}, SSIM={ssim_denoised:.2f}, SI-PSNR={si_psnr_denoised:.2f}, RAM Usage={ram_usage:.2f} MB")
 
-            print(f"PSNR : {psnr_denoised}")
-            print(f"SI-PSNR : {si_psnr_denoised}")
-            print(f"SSIM : {ssim_denoised}")
-            
             # Append results
             denoiser_results.append([
                 image_index, f"{channel}", psnr_denoised, si_psnr_denoised, ssim_denoised, runtime, ram_usage
             ])
-    
+
     return denoiser_results
 
 

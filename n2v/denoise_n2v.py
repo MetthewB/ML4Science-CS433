@@ -1,5 +1,6 @@
 import os 
 from matplotlib import pyplot as plt
+import matplotlib
 import numpy as np
 import logging as log
 from csbdeep.utils import plot_history
@@ -138,10 +139,11 @@ def denoise_n2v(single_image,
     # TODO : fix this 
     # Save the plot as an image file
     log.info("Saving the training history plot")
-    plt.figure(figsize=(16, 5))
+    fig = plt.figure(figsize=(16, 5))
     plot_history(history, ['loss', 'val_loss'])
     plot_path = os.path.join(output_dir, "training_history.png")
     plt.savefig(plot_path)
+    matplotlib.use('Agg') # to close the png image 
     log.info(f"Training history plot saved to {plot_path}")
 
     # Apply the model to denoise the image
