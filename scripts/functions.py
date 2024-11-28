@@ -194,9 +194,9 @@ def display_styled_results(df, output_path, output_file, title):
     display(styled_df)
 
     # Save DataFrame to CSV
-    output_file_path = os.path.join(tables_path, output_file)
-    df.to_csv(output_file_path, index=False)
-    print(f"Results saved to {output_file_path}")
+    # output_file_path = os.path.join(tables_path, output_file)
+    # df.to_csv(output_file_path, index=False)
+    # print(f"Results saved to {output_file_path}")
 
 
 # ---------------
@@ -215,13 +215,15 @@ def get_random_image(data_path):
     return random.choice(sorted(available_images))
 
 
-def process_and_denoise_image(data_path, selected_image, denoiser_name):
+def process_and_denoise_image(data_path, selected_image, denoiser_name, denoiser_params, slice_index):
     """
     Process and denoise a single slice of a 3D image using the specified denoiser.
 
     :param data_path: Path to the image data
     :param selected_image: Name of the selected image
     :param denoiser_name: Name of the denoiser
+    :param denoiser_params: Parameters to pass to the denoiser
+    :param slice_index: Index of the slice to process
     :return: Lists of images, noisy images, denoised images, SI-PSNR values for noisy and denoised images
     """
     images = []
@@ -229,9 +231,6 @@ def process_and_denoise_image(data_path, selected_image, denoiser_name):
     denoised_images = []
     si_psnr_noisy_list = []
     si_psnr_denoised_list = []
-
-    # Choose a random slice index between 0 and 399
-    slice_index = random.randint(0, 399)
 
     for channel in range(3):
         # Load the 3D image
@@ -244,17 +243,18 @@ def process_and_denoise_image(data_path, selected_image, denoiser_name):
         image_slice = image[slice_index, :, :]
 
         # Create a noisy version of the selected slice
-        noisy_image = image_slice + np.random.normal(0, 0.1, image_slice.shape)  # Example noisy image
+        noise_std = np.std(image_slice)  # Adjust noise level as needed
+        noisy_image = image_slice + np.random.normal(0, noise_std, image_slice.shape)  # Example noisy image
 
         x = torch.from_numpy(image_slice).to('cpu').float()  # ground truth
         y = torch.from_numpy(noisy_image).to('cpu').float()  # noisy measurements
 
         if denoiser_name == "TV-ISO":
             prox_tv = prox_tv_iso('cpu')  # construct proximal operator of tv
-            denoised_tv = prox_tv.eval(y.unsqueeze(0).unsqueeze(0), niter=200, lmbda=0.08)  # you need to tune the lmbda and niter sufficiently large such that the solution does not change
+            denoised_tv = prox_tv.eval(y.unsqueeze(0).unsqueeze(0), **denoiser_params)  # you need to tune the lmbda and niter sufficiently large such that the solution does not change
             denoised_image = denoised_tv.squeeze().numpy()
         else:
-            denoiser, denoiser_params = select_denoiser(denoiser_name)
+            denoiser, _ = select_denoiser(denoiser_name)
             denoised_image = denoiser(noisy_image, **denoiser_params)
 
         # Calculate SI-PSNR
@@ -311,12 +311,12 @@ def plot_denoiser_results(images, noisy_images, denoised_images, si_psnr_noisy_l
     os.makedirs(plots_path, exist_ok=True)
 
     # Save the plot to a file
-    plot_file_path = os.path.join(plots_path, f"{title.replace(' ', '_')}.png")
-    plt.savefig(plot_file_path)
+    # plot_file_path = os.path.join(plots_path, f"{title.replace(' ', '_')}.png")
+    # plt.savefig(plot_file_path)
     
     print(f"\n{title}:")
     plt.show()
-    print(f"Plot saved to {plot_file_path}")
+    # print(f"Plot saved to {plot_file_path}")
 
 
 def run_denoising_pipeline(data_path, output_path, denoiser_name, parameter_ranges, disable_progress):
@@ -342,8 +342,30 @@ def run_denoising_pipeline(data_path, output_path, denoiser_name, parameter_rang
     avg_results = compute_averages(results_df)
     display_styled_results(avg_results, output_path, f"average_{result_filename}", title=f"Average {denoiser_name} Results")
 
-    # Process and denoise a single image slice
-    images, noisy_images, denoised_images, si_psnr_noisy_list, si_psnr_denoised_list = process_and_denoise_image(data_path, selected_image, denoiser_name)
+    # Get the denoiser parameters for the plot
+    denoiser, denoiser_params = select_denoiser(denoiser_name)
+    param_config = parameter_ranges[denoiser_name]
 
-    # Plot results for the chosen denoiser
-    plot_denoiser_results(images, noisy_images, denoised_images, si_psnr_noisy_list, si_psnr_denoised_list, title=f"{selected_image} - {denoiser_name}", output_path=output_path)
+    # Choose a random slice index once for all hyperparameter values
+    slice_index = random.randint(0, 399)
+
+    if param_config["values"]:
+        param_name = param_config["param_name"]
+        for param_value in param_config["values"]:
+            denoiser_params = {param_name: param_value}
+            if denoiser_name == "TV-ISO":
+                denoiser_params['niter'] = 200  # Ensure niter is included for TV-ISO
+
+            # Process and denoise a single image slice
+            images, noisy_images, denoised_images, si_psnr_noisy_list, si_psnr_denoised_list = process_and_denoise_image(data_path, selected_image, denoiser_name, denoiser_params, slice_index)
+
+            # Plot results for the chosen denoiser
+            plot_title = f"{selected_image} (Slice {slice_index}) - {denoiser_name} ({param_name}={param_value})"
+            plot_denoiser_results(images, noisy_images, denoised_images, si_psnr_noisy_list, si_psnr_denoised_list, title=plot_title, output_path=output_path)
+    else:
+        # Process and denoise a single image slice with default parameters
+        images, noisy_images, denoised_images, si_psnr_noisy_list, si_psnr_denoised_list = process_and_denoise_image(data_path, selected_image, denoiser_name, denoiser_params, slice_index)
+
+        # Plot results for the chosen denoiser
+        plot_title = f"{selected_image} (Slice {slice_index}) - {denoiser_name} (Default parameters)"
+        plot_denoiser_results(images, noisy_images, denoised_images, si_psnr_noisy_list, si_psnr_denoised_list, title=plot_title, output_path=output_path)
