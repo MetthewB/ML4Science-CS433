@@ -98,6 +98,7 @@ tensorboard==2.13.0
 tensorboard-data-server==0.7.2
 tensorflow==2.13.1
 tensorflow-estimator==2.13.0
+tensorflow-==2.13.1
 termcolor==2.5.0
 tifffile==2024.8.30
 torch==2.5.1
@@ -107,7 +108,7 @@ torchvision==0.20.1
 tornado==6.3.3
 tqdm==4.67.0
 traitlets==5.9.0
-#typing-extensions>=4.6.1
+typing-extensions==4.5.0
 tzdata==2024.2
 urllib3==2.2.3
 wcwidth==0.2.8
