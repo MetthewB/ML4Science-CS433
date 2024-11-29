@@ -23,8 +23,8 @@ PARAMETER_RANGES = {
     "NL-Means": {"param_name": None, "values": None},  # Use default parameters
     "Noise2Void": {
         "train_steps_per_epoch": [100],  # List of values
-        "train_epochs": [5],  # List of values
-        "train_batch_size": [4],  # List of values
+        "train_epochs": [400],  # List of values
+        "train_batch_size": [512],  # List of values
         "n2v_perc_pix": [0.198],  # List of values
         "n2v_patch_shape": [(64, 64)]  # List of values
     }
@@ -40,7 +40,7 @@ def main():
     data_path, output_path = get_paths()
 
     # Choose denoiser
-    denoiser_name = "Wavelet"  # "Gaussian", "Median", "TV-Chambolle", "Wavelet", "NL-Means", or "Noise2Void"
+    denoiser_name = "Noise2Void"  # "Gaussian", "Median", "TV-Chambolle", "Wavelet", "NL-Means", or "Noise2Void"
     log.info(f"Chosen denoiser: {denoiser_name}")
     
     # Process images with the chosen denoiser

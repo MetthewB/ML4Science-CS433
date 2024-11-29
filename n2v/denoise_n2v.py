@@ -3,12 +3,27 @@ from matplotlib import pyplot as plt
 import matplotlib
 import numpy as np
 import logging as log
+import tensorflow as tf
 from csbdeep.utils import plot_history
 from n2v.models import N2VConfig, N2V
 from n2v.internals.N2V_DataGenerator import N2V_DataGenerator
 from scripts.helpers import *
 
 log.basicConfig(level=log.INFO)
+
+# Configure TensorFlow to use the GPU
+gpus = tf.config.experimental.list_physical_devices('GPU')
+if gpus:
+    try:
+        # Currently, memory growth needs to be the same across GPUs
+        for gpu in gpus:
+            tf.config.experimental.set_memory_growth(gpu, True)
+        log.info(f"Using GPU: {gpus}")
+    except RuntimeError as e:
+        log.error(f"Error setting up GPU: {e}")
+else:
+    log.warning("No GPU found. Using CPU instead.")
+
 
 def denoise_n2v(single_image,
                 unet_kern_size=3,
