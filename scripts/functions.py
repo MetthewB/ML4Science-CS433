@@ -10,6 +10,7 @@ from scipy.ndimage import gaussian_filter, median_filter
 from IPython.display import display
 from n2v.denoise_n2v import *
 from scripts.helpers import *
+from scripts.denoise_n2v_careamics import denoise_n2v_careamics
 from scripts.metrics import scale_invariant_psnr
 
 log.basicConfig(level=log.INFO)
@@ -44,7 +45,7 @@ def select_denoiser(denoiser_name):
         denoiser_params = {}  # Use default parameters with no changes
         log.info("Selected NL-Means filter with default parameters")
     elif denoiser_name == "Noise2Void":
-        denoiser = denoise_n2v
+        denoiser = denoise_n2v_careamics
         denoiser_params = {}  # Use default parameters with no changes
         log.info("Selected Noise2Void filter with default parameters")
     else:
