@@ -69,8 +69,8 @@ def process_images(data_path, num_images=2, denoiser=None, disable_progress=Fals
             image_channel = load_image(data_path, f'Image{image_index}/wf_channel{channel}.npy')
             
             # Generate ground truth and sample image
-            ground_truth_img = ground_truth(image_channel)
-            sampled_img = sample_image(image_channel)
+            ground_truth_img = normalize_image(ground_truth(image_channel))
+            sampled_img = normalize_image(sample_image(image_channel))
 
             # Measure runtime and memory usage
             start_time = time.time()
@@ -80,7 +80,7 @@ def process_images(data_path, num_images=2, denoiser=None, disable_progress=Fals
                 prox_tv = denoiser(device='cpu')  # Adjust device as needed
                 denoised_img = prox_tv.eval(torch.from_numpy(sampled_img).unsqueeze(0).unsqueeze(0).float(), **denoiser_params).squeeze().numpy()
             else:
-                denoised_img = denoiser(sampled_img, **denoiser_params)
+                denoised_img = normalize_image(denoiser(sampled_img, **denoiser_params))
 
             runtime = time.time() - start_time
             ram_after = process.memory_info().rss / (1024 ** 2)  # RAM in MB
@@ -242,11 +242,15 @@ def process_and_denoise_image(data_path, selected_image, denoiser_name, denoiser
         # Select the specific slice from the 3D image
         image_slice = image[slice_index, :, :]
 
-        # Create a noisy version of the selected slice
-        noise_std = np.std(image_slice)  # Adjust noise level as needed
-        noisy_image = image_slice + np.random.normal(0, noise_std, image_slice.shape)  # Example noisy image
+        # Normalize the ground truth and selected slice
+        ground_truth_normalized = normalize_image(ground_truth)
+        image_slice_normalized = normalize_image(image_slice)
 
-        x = torch.from_numpy(image_slice).to('cpu').float()  # ground truth
+        # Create a noisy version of the normalized slice
+        noise_std = np.std(image_slice_normalized)  # Adjust noise level as needed
+        noisy_image = normalize_image(image_slice_normalized + np.random.normal(0, noise_std, image_slice_normalized.shape))  # Example noisy image
+
+        x = torch.from_numpy(image_slice_normalized).to('cpu').float()  # ground truth
         y = torch.from_numpy(noisy_image).to('cpu').float()  # noisy measurements
 
         if denoiser_name == "TV-ISO":
@@ -257,13 +261,16 @@ def process_and_denoise_image(data_path, selected_image, denoiser_name, denoiser
             denoiser, _ = select_denoiser(denoiser_name)
             denoised_image = denoiser(noisy_image, **denoiser_params)
 
-        # Calculate SI-PSNR
-        si_psnr_noisy = compute_si_psnr(x, y)
-        si_psnr_denoised = compute_si_psnr(x, torch.from_numpy(denoised_image).to('cpu').float())
+        # Normalize the denoised image
+        denoised_image_normalized = normalize_image(denoised_image)
 
-        images.append(ground_truth)
+        # Calculate SI-PSNR
+        si_psnr_noisy = scale_invariant_psnr(ground_truth_normalized, noisy_image)
+        si_psnr_denoised = scale_invariant_psnr(ground_truth_normalized, denoised_image_normalized)
+
+        images.append(ground_truth_normalized)
         noisy_images.append(noisy_image)
-        denoised_images.append(denoised_image)
+        denoised_images.append(denoised_image_normalized)
         si_psnr_noisy_list.append(si_psnr_noisy)
         si_psnr_denoised_list.append(si_psnr_denoised)
 
@@ -287,11 +294,11 @@ def plot_denoiser_results(images, noisy_images, denoised_images, si_psnr_noisy_l
     channels = ['Channel 0', 'Channel 1', 'Channel 2']
     
     for i in range(3):
-        axes[i, 0].imshow(images[i], cmap='gray')
+        axes[i, 0].imshow(images[i])
         axes[i, 0].set_title(f'{channels[i]} Ground Truth')
         axes[i, 0].axis('off')
 
-        axes[i, 1].imshow(noisy_images[i], cmap='gray')
+        axes[i, 1].imshow(noisy_images[i])
         axes[i, 1].set_title(f'Noisy, SI-PSNR={np.round(si_psnr_noisy_list[i], 2)}')
         axes[i, 1].axis('off')
 
@@ -300,7 +307,7 @@ def plot_denoiser_results(images, noisy_images, denoised_images, si_psnr_noisy_l
         else:
             denoised_image = denoised_images[i]
         
-        axes[i, 2].imshow(denoised_image, cmap='gray')
+        axes[i, 2].imshow(denoised_image)
         axes[i, 2].set_title(f'Denoised, SI-PSNR={np.round(si_psnr_denoised_list[i], 2)}')
         axes[i, 2].axis('off')
 

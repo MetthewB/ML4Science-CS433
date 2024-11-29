@@ -27,3 +27,10 @@ def sample_image(image):
 def data_range(ground_truth_image):
     """Calculate data range for PSNR and SSIM calculations."""
     return ground_truth_image.max() - ground_truth_image.min()
+
+def normalize_image(image): 
+    """Normalizes an image if pixels range are not between 0 and 1."""
+    if (not (0 <= image.min() and image.max() <=1 )): 
+        return (image - image.min()) / (image.max() - image.min()) 
+    else : 
+        return image
