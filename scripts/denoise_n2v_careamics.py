@@ -61,7 +61,7 @@ def denoise_n2v_careamics(single_image,
     
     # Expand dimensions to simulate batch and channel
     log.info("Expanding dimensions to simulate batch and channel")
-    single_image_expanded = np.expand_dims(single_image_normalized, axis=(0, -1))  # Shape: (1, height, width, 1)
+    #single_image_expanded = np.expand_dims(single_image_normalized, axis=(0, -1))  # Shape: (1, height, width, 1)
 
     # Create a configuration for Noise2Void using careamics
     log.info("Creating Noise2Void configuration")
@@ -72,13 +72,7 @@ def denoise_n2v_careamics(single_image,
         n_channels=1,
         patch_size=n2v_patch_shape,
         batch_size=train_batch_size,
-        num_epochs=train_epochs,
-        steps_per_epoch=train_steps_per_epoch,
-        perc_pix=n2v_perc_pix,
-        manipulator=n2v_manipulator,
-        neighborhood_radius=n2v_neighborhood_radius,
-        loss=train_loss,
-        batch_norm=batch_norm
+        num_epochs=train_epochs
     )
 
     # Create the CAREamist model
@@ -87,12 +81,12 @@ def denoise_n2v_careamics(single_image,
 
     # Train the model
     log.info("Training the model")
-    careamist.train(train_source=single_image_expanded, val_source=single_image_expanded)
+    careamist.train(train_source=single_image_normalized, val_source=single_image_normalized)
     log.info("Training finished")
 
     # Apply the model to denoise the image
     log.info("Applying the model to denoise the image")
-    denoised_image = careamist.predict(single_image_expanded, axes='YX')  # Predicts denoised image
+    denoised_image = careamist.predict(single_image_normalized, axes='YX')  # Predicts denoised image
     log.info("Prediction finished")
     
     return denoised_image

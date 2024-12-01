@@ -5,6 +5,7 @@
     > username@izar.hpc.epfl.ch's password: # Set password
 
 2. Upload files to Scitas directory
+
     $ scp path/to/file username@izar.hpc.epfl.ch:/home/username/
 
 3. List all files in directory

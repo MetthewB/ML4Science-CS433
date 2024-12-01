@@ -84,7 +84,7 @@ def process_with_denoiser(denoiser_name, data_path, nb_images, nb_channels, para
             denoiser_params = dict(zip(param_names, values))
 
             denoiser_results = process_images(
-                data_path, nb_images=nb_images, nb_channels=nb_channels, denoiser=denoise_n2v, disable_progress=disable_progress, **denoiser_params
+                data_path, nb_images=nb_images, nb_channels=nb_channels, denoiser=denoise_n2v_careamics, disable_progress=disable_progress, **denoiser_params
             )
 
             # Evaluate and store the results
