@@ -76,7 +76,7 @@ def main():
             # Generate ground truth and sample image
             ground_truth_img = ground_truth(image)
             
-            denoised_img = denoiser_n2v(image, patch_size=(64, 64), batch_size=4, num_epochs=1)
+            denoised_img = denoiser_n2v(image, patch_size=(64, 64), batch_size=512, num_epochs=400)
 
             # Calculate metrics
             psnr_denoised = peak_signal_noise_ratio(ground_truth_img, denoised_img, data_range=data_range(ground_truth_img))
