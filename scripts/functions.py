@@ -8,7 +8,6 @@ from skimage.metrics import peak_signal_noise_ratio, structural_similarity
 from skimage.restoration import denoise_tv_chambolle, denoise_wavelet, denoise_nl_means
 from scipy.ndimage import gaussian_filter, median_filter
 from IPython.display import display
-from n2v.denoise_n2v import *
 from scripts.helpers import *
 from scripts.denoise_n2v_careamics import denoise_n2v_careamics
 from scripts.metrics import scale_invariant_psnr

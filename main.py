@@ -22,11 +22,9 @@ PARAMETER_RANGES = {
     "Wavelet": {"param_name": None, "values": None},  # Use default parameters
     "NL-Means": {"param_name": None, "values": None},  # Use default parameters
     "Noise2Void": {
-        "train_steps_per_epoch": [100],  # List of values
-        "train_epochs": [400],  # List of values
+        "num_epochs": [400],  # List of values
         "train_batch_size": [512],  # List of values
-        "n2v_perc_pix": [0.198],  # List of values
-        "n2v_patch_shape": [(64, 64)]  # List of values
+        "patch_shape": [(64, 64)]  # List of values
     }
 }
 

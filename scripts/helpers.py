@@ -34,7 +34,7 @@ def ground_truth(image):
 def sample_image(image):
     """Randomly sample an image slice."""
     sampled_image_index = np.random.randint(0, image.shape[0])
-    return image[sampled_image_index].reshape(1, image.shape[1], image.shape[2])
+    return image[sampled_image_index].reshape(1, image.shape[1], image.shape[2]), sampled_image_index
 
 def data_range(ground_truth_image):
     """Calculate data range for PSNR and SSIM calculations."""
