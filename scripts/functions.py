@@ -247,8 +247,7 @@ def process_and_denoise_image(data_path, selected_image, denoiser_name, denoiser
         image_slice_normalized = normalize_image(image_slice)
 
         # Create a noisy version of the normalized slice
-        noise_std = np.std(image_slice_normalized)  # Adjust noise level as needed
-        noisy_image = normalize_image(image_slice_normalized + np.random.normal(0, noise_std, image_slice_normalized.shape))  # Example noisy image
+        noisy_image = normalize_image(image_slice_normalized)  # Example noisy image
 
         x = torch.from_numpy(image_slice_normalized).to('cpu').float()  # ground truth
         y = torch.from_numpy(noisy_image).to('cpu').float()  # noisy measurements
