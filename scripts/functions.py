@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 from tqdm import tqdm
+from bm3d import bm3d
 import random
 import time
 import psutil
@@ -20,7 +21,7 @@ def select_denoiser(denoiser_name):
     """
     Select the filter function and its parameters based on the denoiser name.
     
-    :param denoiser_name: The name of the denoiser ("Gaussian", "Median", "TV", "Wavelet", or "NL-Means")
+    :param denoiser_name: The name of the denoiser ("Gaussian", "Median", "TV-Chambolle", "TV-ISO", "Wavelet", "NL-Means", or "BM3D")
     :return: denoiser (denoiser function), denoiser_params (dictionary of parameters)
     """
     if denoiser_name == "Gaussian":
@@ -32,15 +33,18 @@ def select_denoiser(denoiser_name):
     elif denoiser_name == "TV-Chambolle":
         denoiser = denoise_tv_chambolle
         denoiser_params = {'weight': 0.1}  # TV denoiser parameter
+    elif denoiser_name == "TV-ISO":
+        denoiser = prox_tv_iso
+        denoiser_params = {'lmbda': 0.08, 'niter': 200}  # TV-ISO denoiser parameters
     elif denoiser_name == "Wavelet":
         denoiser = denoise_wavelet
         denoiser_params = {}  # Use default parameters with no changes
     elif denoiser_name == "NL-Means":
         denoiser = denoise_nl_means
         denoiser_params = {}  # Use default parameters with no changes
-    elif denoiser_name == "TV-ISO":
-        denoiser = prox_tv_iso
-        denoiser_params = {'lmbda': 0.08, 'niter': 200}  # TV-ISO denoiser parameters
+    elif denoiser_name == "BM3D":
+        denoiser = bm3d
+        denoiser_params = {'sigma_psd': 0.1}  # BM3D denoiser parameter
     else:
         raise ValueError("Unsupported denoiser.")
     
@@ -194,9 +198,9 @@ def display_styled_results(df, output_path, output_file, title):
     display(styled_df)
 
     # Save DataFrame to CSV
-    # output_file_path = os.path.join(tables_path, output_file)
-    # df.to_csv(output_file_path, index=False)
-    # print(f"Results saved to {output_file_path}")
+    output_file_path = os.path.join(tables_path, output_file)
+    df.to_csv(output_file_path, index=False)
+    print(f"Results saved to {output_file_path}")
 
 
 # ---------------
@@ -317,12 +321,12 @@ def plot_denoiser_results(images, noisy_images, denoised_images, si_psnr_noisy_l
     os.makedirs(plots_path, exist_ok=True)
 
     # Save the plot to a file
-    # plot_file_path = os.path.join(plots_path, f"{title.replace(' ', '_')}.png")
-    # plt.savefig(plot_file_path)
+    plot_file_path = os.path.join(plots_path, f"{title.replace(' ', '_')}.png")
+    plt.savefig(plot_file_path)
     
     print(f"\n{title}:")
     plt.show()
-    # print(f"Plot saved to {plot_file_path}")
+    print(f"Plot saved to {plot_file_path}")
 
 
 def run_denoising_pipeline(data_path, output_path, denoiser_name, parameter_ranges, disable_progress):
