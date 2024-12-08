@@ -1,6 +1,6 @@
 __pycache__/
 *.py[cod]
 
-data/
+data/raw/
 models/noise2noise_weights/
 models/noise2void_weights/
