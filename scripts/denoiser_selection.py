@@ -46,6 +46,7 @@ def load_model_noise2noise():
     
     infos = torch.load(model_path, map_location=device)
     config = infos['config']
+    print(config)
 
     model = DRUNet(config['net_params']['nb_channels'], config['net_params']['depth'], config['training_options']['color'])
     model.load_state_dict(infos['state_dict'])  # loads the saved model weights into the new model

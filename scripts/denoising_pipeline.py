@@ -2,6 +2,7 @@ import os
 import pandas as pd
 from tqdm import tqdm
 import logging as log
+import time
 from scripts.helpers import *
 from models.prox_tv_iso import *
 from scripts.denoiser_selection import select_denoiser
@@ -53,7 +54,7 @@ def load_and_prepare_images(data_path, channel, image_index):
     '''Load and prepare images for denoising.'''
     
     # Construct the image path
-    image_path = f'channel{channel}/Image{image_index}/wf_channel{channel}.npy'
+    image_path = f'Image{image_index}/wf_channel{channel}.npy'
     
     # Load the image
     image = load_image(data_path, image_path)
@@ -77,16 +78,22 @@ def denoise_images(denoiser, denoiser_name, param_config, noisy_image, ground_tr
         param_name = param_config["param_name"]
         for value in tqdm(param_config["values"], disable=disable_progress):
             denoiser_params = {param_name: value}
+            start_time = time.time()  
             denoised_image = apply_denoiser(denoiser, denoiser_name, denoiser_params, noisy_image)
-            results.append([image_index, f"{channel}", *compute_metrics(denoised_image, ground_truth_img), denoiser_name, value])
+            end_time = time.time()  
+            runtime = end_time - start_time 
+            results.append([image_index, f"{channel}", *compute_metrics(denoised_image, ground_truth_img), denoiser_name, value, runtime])
             
             # Save the denoised image for channel 0 and image 001
             if channel == 0 and image_index == '001':
                 save_denoised_image(denoised_image, output_path, denoiser_name, channel, image_index, value)
     else:
         denoiser_params = {}
+        start_time = time.time()
         denoised_image = apply_denoiser(denoiser, denoiser_name, denoiser_params, noisy_image)
-        results.append([image_index, f"{channel}", *compute_metrics(denoised_image, ground_truth_img), denoiser_name, denoiser_params])
+        end_time = time.time()  
+        runtime = end_time - start_time 
+        results.append([image_index, f"{channel}", *compute_metrics(denoised_image, ground_truth_img), denoiser_name, denoiser_params, runtime])
         
         # Save the denoised image for channel 0 and image 001
         if channel == 0 and image_index == '001':
@@ -143,8 +150,8 @@ def save_results_to_csv(results, output_path, denoiser_name, channel):
     os.makedirs(denoiser_folder, exist_ok=True)
     
     # Save results to CSV
-    results_df = pd.DataFrame(results, columns=['ImageIndex', 'Channel', 'PSNR', 'SI-PSNR', 'SSIM', 'DenoiserType', 'Parameter'])
-    results_df = results_df[['DenoiserType', 'Parameter', 'ImageIndex', 'Channel', 'PSNR', 'SI-PSNR', 'SSIM']]
+    results_df = pd.DataFrame(results, columns=['ImageIndex', 'Channel', 'PSNR', 'SI-PSNR', 'SSIM', 'DenoiserType', 'Parameter', 'Runtime'])
+    results_df = results_df[['DenoiserType', 'Parameter', 'ImageIndex', 'Channel', 'PSNR', 'SI-PSNR', 'SSIM', 'Runtime']]
     results_df.to_csv(os.path.join(denoiser_folder, f"{denoiser_name}_channel{channel}_denoiser_results.csv"), index=False)
 
 def save_average_results_to_csv(all_results, output_path, denoiser_name):
@@ -155,16 +162,20 @@ def save_average_results_to_csv(all_results, output_path, denoiser_name):
     os.makedirs(denoiser_folder, exist_ok=True)
     
     # Save average results to CSV
-    all_results_df = pd.DataFrame(all_results, columns=['ImageIndex', 'Channel', 'PSNR', 'SI-PSNR', 'SSIM', 'DenoiserType', 'Parameter'])
-    all_results_df = all_results_df[['DenoiserType', 'Parameter', 'ImageIndex', 'Channel', 'PSNR', 'SI-PSNR', 'SSIM']]
+    all_results_df = pd.DataFrame(all_results, columns=['ImageIndex', 'Channel', 'PSNR', 'SI-PSNR', 'SSIM', 'DenoiserType', 'Parameter', 'Runtime'])
+    all_results_df = all_results_df[['DenoiserType', 'Parameter', 'ImageIndex', 'Channel', 'PSNR', 'SI-PSNR', 'SSIM', 'Runtime']]
     
     # Check if the 'Parameter' column is empty
     if (all_results_df['Parameter'] == {}).all():
-        # Perform groupby on 'DenoiserType' and 'Channel' only
-        all_results_df = all_results_df.groupby(['DenoiserType', 'Channel'], as_index=False)[['PSNR', 'SI-PSNR', 'SSIM']].mean().reset_index(drop=True)
+        total_runtime_df = all_results_df.groupby(['DenoiserType', 'Channel'])['Runtime'].sum()
+        all_results_df = all_results_df.groupby(['DenoiserType', 'Channel'])[['PSNR', 'SI-PSNR', 'SSIM']].mean().reset_index()
+        all_results_df = all_results_df.join(total_runtime_df, on=(['DenoiserType', 'Channel'])).rename(columns={'Runtime': 'TotalRuntime'})
     else:
-        # Perform groupby on 'DenoiserType', 'Parameter', and 'Channel'
-        all_results_df = all_results_df.groupby(['DenoiserType', 'Parameter', 'Channel'], as_index=False)[['PSNR', 'SI-PSNR', 'SSIM']].mean().reset_index(drop=True)
+        total_runtime_df = all_results_df.groupby(['DenoiserType', 'Channel'])['Runtime'].sum()
+        print(total_runtime_df)
+        all_results_df = all_results_df.groupby(['DenoiserType', 'Channel'])[['PSNR', 'SI-PSNR', 'SSIM']].mean().reset_index()
+        all_results_df = all_results_df.join(total_runtime_df, on=(['DenoiserType', 'Channel'])).rename(columns={'Runtime': 'TotalRuntime'})
+
     
     all_results_df.to_csv(os.path.join(denoiser_folder, f"avg_{denoiser_name}_denoiser_results.csv"), index=False)
     

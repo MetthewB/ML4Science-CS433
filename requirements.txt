@@ -6,3 +6,4 @@ pandas
 tqdm
 bm3d
 ipython
+careamics

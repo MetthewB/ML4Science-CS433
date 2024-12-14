@@ -1,15 +1,11 @@
 my_denoising_project/
 ├── data/
 │   ├── raw/                # Raw data (original images)
-│   |   ├── channel0/
-│   |   |   ├── Image001/ 
-│   |   |   |    ├── wf_channel0.npy 
-│   |   ├── channel1/ 
-│   |   |   ├── Image001/ 
-│   |   |   |    ├── wf_channel1.npy
-│   |   ├── channel2/ 
-│   |   |   ├── Image001/ 
-│   |   |   |    ├── wf_channel2.npy
+|   |    |--readme.txt                      # description of the dataset
+|   |    |--Image%03d/                      # folders for different FOVs, ID range from 001 to 120
+|   |    |--wf_channel{0,1,2}.npy         # 400 shots of the FOV captured using widefield, each file contains a 400x512x512 uint16 tensor
+|   |    |--sim_input_channel{0,1,2}.npy  # SIM inputs for getting the SIM reconstructed results, each file contains a 1536x2560 tensor
+|   |    |--sim_channel{0,1,2}.npy        # SIM reconstructed results of the 3 channels, each file contains a 1024x1024 tensor
 │   ├── processed/          # Processed data (denoised images)
 │   |   ├── Gaussian/ 
 │   |   ├── Median/ 

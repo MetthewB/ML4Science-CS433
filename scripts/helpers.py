@@ -54,16 +54,15 @@ def display_styled_results(df, output_path, output_file, title):
         output_file (str): Filename for saving the CSV.
         title (str): Title to display before the DataFrame.
     """
-    # Create the tables directory if it doesn't exist
-    tables_path = os.path.join(output_path, 'tables')
-    os.makedirs(tables_path, exist_ok=True)
-
+    print(df.columns)
+    
     # Format and style the DataFrame
     styled_df = df.style.format({
         'PSNR': "{:.2f}",
         'SI-PSNR': "{:.2f}",
-        'SSIM': "{:.4f}"
-    }).background_gradient(subset=['PSNR', 'SI-PSNR', 'SSIM'])
+        'SSIM': "{:.4f}", 
+        'TotalRuntime': "{:.2f}"
+    }).background_gradient(subset=['PSNR', 'SI-PSNR', 'SSIM', 'TotalRuntime'])
 
     # Display styled DataFrame
     log.info(f"\n{title}:")
