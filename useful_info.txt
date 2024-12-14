@@ -1,0 +1,4 @@
+commandes à effectuer dans terminal pour lancer tensorboard : 
+    - ouvrir un terminal et naviguer jsuqu'au bon dossier (ici Noise2Noise)
+    - taper commande : tensorboard --logdir=PATH/to_logs (ici tensorboard_logs)
+    - ouvrir lien dans navigateur 

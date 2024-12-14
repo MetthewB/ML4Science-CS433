@@ -4,3 +4,4 @@ __pycache__/
 data/raw/
 models/noise2noise_weights/
 models/noise2void_weights/
+Noise2Noise/w2s_bw.h5
