@@ -8,6 +8,7 @@ log.basicConfig(level=log.INFO)
 
 IMAGE_INDEX = 249
 
+
 def get_paths():
     """
     Returns the data and output paths relative to the current working directory.
@@ -18,13 +19,16 @@ def get_paths():
     output_path = os.path.abspath(os.path.join(os.getcwd(), 'data/output')) + '/'
     return data_path, output_path
 
+
 def load_image(path_to_data, image_path):
     """Load a .npy image file from the specified path."""
     return np.load(path_to_data + image_path)
 
+
 def ground_truth(image):
     """Calculate ground truth as the mean projection of image along the first axis."""
     return image.mean(axis=0)
+
 
 def sample_image(image, random=False):
     """Randomly sample an image slice."""
@@ -33,9 +37,11 @@ def sample_image(image, random=False):
         return image[sampled_image_index]
     return image[IMAGE_INDEX]
 
+
 def data_range(ground_truth_image):
     """Calculate data range for PSNR and SSIM calculations."""
     return ground_truth_image.max() - ground_truth_image.min()
+
 
 def normalize_image(image): 
     """Normalizes an image if pixels range are not between 0 and 1."""
@@ -43,6 +49,7 @@ def normalize_image(image):
         return (image - image.min()) / (image.max() - image.min()) 
     else : 
         return image
+
 
 def display_styled_results(df, output_path, output_file, title):
     """
@@ -116,4 +123,3 @@ def plot_denoiser_results(images, noisy_images, denoised_images, si_psnr_noisy_l
     print(f"\n{title}:")
     plt.show()
     print(f"Plot saved to {plot_file_path}")
-
