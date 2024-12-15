@@ -1,6 +1,5 @@
 """Convert dataset to h5 format for Noise2Noise training in order to load the data faster."""
 
-
 import h5py
 import numpy as np
 import os

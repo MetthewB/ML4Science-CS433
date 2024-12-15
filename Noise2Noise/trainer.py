@@ -11,8 +11,7 @@ from metrics import scale_invariant_psnr
 torch.manual_seed(0)
 
 class Trainer:
-    """
-    """
+    """ Trainer class for training the model."""
     def __init__(self, config, device):
         self.config = config
         self.device = device
@@ -32,7 +31,6 @@ class Trainer:
 
         print('Building the model')
         # Build the model
-
         self.model = DRUNet(config['net_params']['nb_channels'], config['net_params']['depth'], \
                              self.color)
         self.model = self.model.to(device)
@@ -60,9 +58,9 @@ class Trainer:
         self.total_training_step = 1
         self.total_testing_step = 0    
 
+
     def train(self):
-        """
-        """
+        """Training the model."""
         self.model.train()
         tbar = tqdm(self.train_dataloader, ncols=135, position=0, leave=True)
         log = {}
@@ -101,8 +99,9 @@ class Trainer:
         self.writer.flush()
         self.writer.close()
 
+
     def valid_epoch(self, epoch):
-        
+        """Validation of the model."""
         self.model.eval()
         si_psnr_mean = 0.
         tbar = tqdm(range(120), ncols=135, position=0, leave=True)
@@ -123,11 +122,15 @@ class Trainer:
         self.wrt_mode = 'val'
         self.writer.add_scalar(f'{self.wrt_mode}/SI-PSNR', si_psnr_mean, epoch)
 
+
     def write_scalars_tb(self, logs):
+        """Write scalars to tensorboard."""
         for k, v in logs.items():
             self.writer.add_scalar(f'train/{k}', v, self.wrt_step)
 
+
     def save_checkpoint(self):
+        """Save the model checkpoint."""
         state = {
             'state_dict': self.model.state_dict(),
             'optimizer': self.optimizer.state_dict(),

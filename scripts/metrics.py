@@ -1,6 +1,12 @@
 import numpy as np
-from skimage.metrics import peak_signal_noise_ratio
+import logging as log
+
+from skimage.metrics import peak_signal_noise_ratio, structural_similarity
 from scripts.utils import _zero_mean, _fix
+from scripts.helpers import normalize_image, data_range
+
+log.basicConfig(level=log.INFO, format='%(asctime)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+
 
 # PSNR and SI-PSNR using NumPy
 def psnr(gt: np.ndarray, pred: np.ndarray, data_range: float) -> float:
@@ -12,6 +18,7 @@ def scale_invariant_psnr(gt: np.ndarray, pred: np.ndarray) -> float:
     range_param = (np.max(gt) - np.min(gt)) / np.std(gt)
     gt_ = _zero_mean(gt) / np.std(gt)
     return peak_signal_noise_ratio(_zero_mean(gt_), _fix(gt_, pred), data_range=range_param)
+
 
 # PSNR and SI-PSNR using PyTorch
 def compute_psnr(gt, pred, data_range=1):
@@ -31,6 +38,7 @@ def compute_si_psnr(gt, pred):
     gt_ = _zero_mean(gt_np) / np.std(gt_np)
     return peak_signal_noise_ratio(_zero_mean(gt_), _fix(gt_, pred_np), data_range=range_param)
 
+
 # Average PSNR and SI-PSNR
 def avg_psnr(target: np.ndarray, prediction: np.ndarray) -> float:
     """Average PSNR over a batch of images."""
@@ -39,3 +47,18 @@ def avg_psnr(target: np.ndarray, prediction: np.ndarray) -> float:
 def avg_si_psnr(target: np.ndarray, prediction: np.ndarray) -> float:
     """Average SI-PSNR over a batch of images."""
     return np.mean([scale_invariant_psnr(target[i], prediction[i]) for i in range(len(target))])
+
+
+# Compute metrics for denoised image
+def compute_metrics(denoised_image, ground_truth_image):
+    """Compute PSNR, SI-PSNR, and SSIM for the denoised image."""
+    
+    log.info(f"Computing metrics for denoised image.")
+    
+    denoised_image = normalize_image(denoised_image)
+
+    psnr_denoised = psnr(ground_truth_image, denoised_image, data_range=data_range(ground_truth_image))
+    si_psnr_denoised = scale_invariant_psnr(ground_truth_image, denoised_image)
+    ssim_denoised = structural_similarity(ground_truth_image, denoised_image, data_range=data_range(ground_truth_image))
+    
+    return [psnr_denoised, si_psnr_denoised, ssim_denoised]

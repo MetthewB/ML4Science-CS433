@@ -1,9 +1,9 @@
-# filepath: /Users/gattimartina/Noise2Noise/export_tensorboard_plots.py
 import os
 import matplotlib.pyplot as plt
 from tensorboard.backend.event_processing import event_accumulator
 
 def export_plots(log_dir, output_dir):
+    """Export plots from tensorboard log directory to output directory."""
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
@@ -16,10 +16,9 @@ def export_plots(log_dir, output_dir):
         steps = [e.step for e in events]
         values = [e.value for e in events]
         
-        
-        
+        # Add a condition to plot the SI-PSNR
         if (tag == 'val/SI-PSNR'):
-            
+
             print(values)
             
             plt.figure()
@@ -32,6 +31,7 @@ def export_plots(log_dir, output_dir):
             plt.title("Evolution of the SI-PSNR during validation")
             plt.savefig(os.path.join(output_dir, f"{tag.replace('/', '_')}.png"))
             plt.close()
+
         else : 
             plt.figure()
             plt.plot(steps, values)

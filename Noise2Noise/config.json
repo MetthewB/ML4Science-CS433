@@ -7,7 +7,7 @@
     },
     "training_options": {
         "color": false,
-        "batch_size": 16, # 
+        "batch_size": 16,
         "patch_size": 128,
         "data_augmentation": true,
         "gamma_scheduler": 0.5,

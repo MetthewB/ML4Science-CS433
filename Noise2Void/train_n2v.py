@@ -1,11 +1,16 @@
 from careamics import CAREamist
-from careamics.utils.metrics import psnr
 from careamics.config import create_n2v_configuration
 import numpy as np
 import logging as log
+import sys
 import os
+
+# Add the top-level and the script directories to the sys.path
+sys.path.append(os.path.abspath(os.path.join(os.getcwd(), '..')))
+sys.path.append(os.path.abspath(os.path.join(os.getcwd(), '..', 'scripts')))
+
 from scripts.helpers import get_paths, ground_truth, normalize_image
-from scripts.metric_computation import compute_metrics
+from scripts.metrics import compute_metrics
 
 log.basicConfig(level=log.INFO)
 

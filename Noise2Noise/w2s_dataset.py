@@ -6,8 +6,10 @@ import numpy as np
 
 
 class W2SDataset(Dataset):
+    """Dataset class for the W2S dataset."""
 
     def __init__(self, color, patch_size, nb_iter, data_augmentation=True):
+        """Initialize the dataset class."""
         super(Dataset, self).__init__()
         self.color = color
         if self.color: self.data_file = 'w2s_color.h5'
@@ -17,12 +19,12 @@ class W2SDataset(Dataset):
         self.data_augmentation = data_augmentation 
         self.dataset = None
 
-
     def __len__(self):
+        """Return the number of iterations."""
         return self.nb_iter
 
-
     def __getitem__(self, idx):
+        """Return a random image patch."""
         if self.dataset is None:
             self.dataset = h5py.File(self.data_file, 'r')
         image_idx = torch.randint(0, 120, (1,)).item()

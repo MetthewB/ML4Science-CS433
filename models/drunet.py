@@ -3,7 +3,10 @@ import torch.nn as nn
 from models.resblock import ResBlocks
 
 class DRUNet(nn.Module):
+    """Deep Residual U-Net model."""
+
     def __init__(self, nb_channels, depth, color):
+        """Initialization."""
         super(DRUNet, self).__init__()
 
         if color: img_channels = 3
@@ -26,6 +29,7 @@ class DRUNet(nn.Module):
         self.alpha = torch.nn.Parameter(torch.tensor(5.))
 
     def forward(self, x):
+        """Forward pass."""
         x1 = self.conv_first(x)
         x2 = self.downsamples[0](self.resblocks[0](x1))
         x3 = self.downsamples[1](self.resblocks[1](x2))

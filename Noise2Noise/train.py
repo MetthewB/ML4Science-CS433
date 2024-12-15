@@ -6,9 +6,11 @@ import warnings
 import random
 import numpy as np
 from trainer import Trainer
+
 warnings.filterwarnings("ignore", message="Setting attributes on ParameterList is not supported.")
 
 def main(args):
+    """Main function to start the training."""
 
     config = json.load(open('config.json'))
     trainer_inst = Trainer(config, args.device)
@@ -29,7 +31,7 @@ def main(args):
 
 
 if __name__ == '__main__':
-    # PARSE THE ARGS
+    # Parse command line arguments
     parser = argparse.ArgumentParser(description='PyTorch Training')
     parser.add_argument('-d', '--device', default="cpu", type=str, help='device to use')
     args = parser.parse_args()
