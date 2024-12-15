@@ -12,6 +12,9 @@ To run this project, you need to install the dependencies listed in `requirement
 pip install -r [requirements.txt](http://_vscodecontentref_/1)
 ```
 
+## Project Structure
+
+```
 ML4Science/
 ├── data/
 │   ├── raw/                # Raw data (original images)
@@ -73,6 +76,7 @@ ML4Science/
 ├── [requirements.txt](http://_vscodecontentref_/4)        # Project dependencies
 ├── LICENSE.txt             # Project license
 └── [README.md](http://_vscodecontentref_/5)               # Project description and instructions
+```
 
 ## Running TensorBoard
 
