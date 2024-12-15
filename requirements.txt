@@ -9,3 +9,5 @@ ipython
 careamics
 tensorboard 
 opencv-python
+h5py
+matplotlib

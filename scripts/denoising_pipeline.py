@@ -57,7 +57,7 @@ def load_and_prepare_images(data_path, channel, image_index):
     """Load and prepare images for denoising."""
     
     # Construct the image path
-    image_path = f'channel{channel}/Image{image_index}/wf_channel{channel}.npy'
+    image_path = f'/Image{image_index}/wf_channel{channel}.npy'
     
     # Load the image
     image = load_image(data_path, image_path)

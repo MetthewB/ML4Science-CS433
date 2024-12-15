@@ -6,15 +6,8 @@ from tqdm import tqdm
 from torch.utils.data import DataLoader
 from torch.utils import tensorboard
 from w2s_dataset import W2SDataset
-# from models.drunet import DRUNet
-# from metrics import scale_invariant_psnr
+from torch_metrics import scale_invariant_psnr
 import logging as log 
-
-# Add the top-level and the script directories to the sys.path
-sys.path.append(os.path.abspath(os.path.join(os.getcwd(), '..')))
-sys.path.append(os.path.abspath(os.path.join(os.getcwd(), '..', 'scripts')))
-
-from scripts.metrics import scale_invariant_psnr
 
 # Add the top-level and the models directories to the sys.path
 sys.path.append(os.path.abspath(os.path.join(os.getcwd(), '..')))

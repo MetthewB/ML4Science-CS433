@@ -1,8 +1,9 @@
 import numpy as np
 import logging as log
+import torch
+from typing import Union
 
 from skimage.metrics import peak_signal_noise_ratio, structural_similarity
-from scripts.utils import _zero_mean, _fix
 from scripts.helpers import normalize_image, data_range
 
 log.basicConfig(level=log.INFO, format='%(asctime)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
@@ -48,6 +49,20 @@ def avg_si_psnr(target: np.ndarray, prediction: np.ndarray) -> float:
     """Average SI-PSNR over a batch of images."""
     return np.mean([scale_invariant_psnr(target[i], prediction[i]) for i in range(len(target))])
 
+
+def _zero_mean(x: Union[np.ndarray, torch.Tensor]) -> Union[np.ndarray, torch.Tensor]:
+    """Zero the mean of an array."""
+    return x - x.mean()
+
+def _fix_range(gt: Union[np.ndarray, torch.Tensor], x: Union[np.ndarray, torch.Tensor]) -> Union[np.ndarray, torch.Tensor]:
+    """Adjust the range of an array based on a reference array."""
+    a = (gt * x).sum() / (x * x).sum()
+    return x * a
+
+def _fix(gt: Union[np.ndarray, torch.Tensor], x: Union[np.ndarray, torch.Tensor]) -> Union[np.ndarray, torch.Tensor]:
+    """Zero-mean and range-adjust an array."""
+    gt_ = _zero_mean(gt)
+    return _fix_range(gt_, _zero_mean(x))
 
 # Compute metrics for denoised image
 def compute_metrics(denoised_image, ground_truth_image):
