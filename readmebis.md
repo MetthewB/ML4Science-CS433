@@ -20,8 +20,6 @@ This project focuses on improving image quality by reducing noise using state-of
 
 ## Background
 
-## Background
-
 Noise in images often obstructs meaningful analysis, particularly in scientific imaging. This project aims to tackle the challenge of denoising images using a variety of techniques, including:  
 
 - **Traditional methods**: Gaussian Filtering, Median Filtering, Non-Local Means (NL-Means), TV-Chambolle, Wavelet filtering.  
