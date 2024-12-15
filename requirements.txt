@@ -7,3 +7,5 @@ tqdm
 bm3d
 ipython
 careamics
+tensorboard 
+opencv-python

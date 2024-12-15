@@ -40,16 +40,27 @@ def load_dataset(data_path):
     
     return dataset
 
-# Example usage
-data_path, output_path = get_paths()
+current_working_dir = os.getcwd()
+parent_dir = os.path.abspath(os.path.join(current_working_dir, '..'))
+
+data_path = os.path.join(parent_dir, f'data/raw')
+output_path = os.path.join(parent_dir, f'data/processed')
 log.info(f"Data path: {data_path}")
 log.info(f"Output path: {output_path}")
+
 dataset = load_dataset(data_path)
 log.info(f"Dataset shape: {dataset.shape}")
 
-image = np.load('data/raw/Image001/wf_channel0.npy')
+image_path = os.path.join(data_path, f'Image001/wf_channel0.npy')
+image = np.load(image_path)
+
 noisy_image = image[249, :, :]
+
 ground_truth_image = normalize_image(ground_truth(image))
+
+log.info(ground_truth_image.shape)
+log.info(noisy_image.shape)
+
 
 dataset_bis = dataset.reshape(360, 1, 512, 512)
 
@@ -80,7 +91,7 @@ careamist = CAREamist(
     work_dir='models/noise2void_weights/'
 )
 
-print(config)
+log.info(config)
 
 log.info("Training the model...")
 careamist.train(train_source=train.reshape(-1, 512, 512), val_source=val.reshape(-1, 512, 512))

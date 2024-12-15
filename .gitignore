@@ -2,6 +2,6 @@ __pycache__/
 *.py[cod]
 
 data/raw/
-models/noise2noise_weights/
 models/noise2void_weights/
 Noise2Noise/w2s_bw.h5
+Noise2Noise/exps/Noise2Noise/checkpoints/checkpoint.pth

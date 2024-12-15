@@ -62,7 +62,7 @@ def display_styled_results(df, output_path, output_file, title):
         output_file (str): Filename for saving the CSV.
         title (str): Title to display before the DataFrame.
     """
-    print(df.columns)
+    log.info(df.columns)
     
     # Format and style the DataFrame
     styled_df = df.style.format({

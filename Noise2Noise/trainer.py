@@ -1,14 +1,29 @@
 import torch
-import os
+import os, sys
 import json
 import numpy as np
 from tqdm import tqdm
 from torch.utils.data import DataLoader
 from torch.utils import tensorboard
 from w2s_dataset import W2SDataset
+# from models.drunet import DRUNet
+# from metrics import scale_invariant_psnr
+import logging as log 
+
+# Add the top-level and the script directories to the sys.path
+sys.path.append(os.path.abspath(os.path.join(os.getcwd(), '..')))
+sys.path.append(os.path.abspath(os.path.join(os.getcwd(), '..', 'scripts')))
+
+from scripts.metrics import scale_invariant_psnr
+
+# Add the top-level and the models directories to the sys.path
+sys.path.append(os.path.abspath(os.path.join(os.getcwd(), '..')))
+sys.path.append(os.path.abspath(os.path.join(os.getcwd(), '..', 'models')))
+
 from models.drunet import DRUNet
-from metrics import scale_invariant_psnr
+
 torch.manual_seed(0)
+log.basicConfig(level=log.INFO)
 
 class Trainer:
     """ Trainer class for training the model."""
@@ -16,26 +31,26 @@ class Trainer:
         self.config = config
         self.device = device
         
-        print(config)
+        log.info(config)
 
         # Prepare dataset classes
         self.color = config['training_options']['color']
         train_dataset = W2SDataset(self.color, config['training_options']['patch_size'], \
                         config['training_options']['total_steps']*config["training_options"]["batch_size"])
 
-        print('Preparing the dataloaders')
+        log.info('Preparing the dataloaders')
         # Prepare dataloaders 
         self.train_dataloader = DataLoader(train_dataset, batch_size=config["training_options"]["batch_size"], \
                                            shuffle=True, num_workers=config["training_options"]["num_workers"], drop_last=True)
         self.batch_size = config["training_options"]["batch_size"]
 
-        print('Building the model')
+        log.info('Building the model')
         # Build the model
         self.model = DRUNet(config['net_params']['nb_channels'], config['net_params']['depth'], \
                              self.color)
         self.model = self.model.to(device)
 
-        print(self.model)
+        log.info(self.model)
         
         # Set up the optimizer
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.config["training_options"]["lr"])
@@ -107,15 +122,21 @@ class Trainer:
         tbar = tqdm(range(120), ncols=135, position=0, leave=True)
         with torch.no_grad():
             for k in tbar:
+                image_index = str(k + 1).zfill(3)
+                
+                current_working_dir = os.getcwd()
+                parent_dir = os.path.abspath(os.path.join(current_working_dir, '..'))
+                data_path = os.path.join(parent_dir, f'data/raw')
+                
                 if self.color:
                     gt = torch.tensor(np.load(f'raw/Image{k+1}/wf_mean.npy'))
                     frame = torch.zeros(1, 3, 512, 512, device=self.device)
-                    frame[0,0] = torch.tensor(np.load(f'raw/Image{k+1}/wf_channel0.npy'))[200]
-                    frame[0,1] = torch.tensor(np.load(f'raw/Image{k+1}/wf_channel1.npy'))[200]
-                    frame[0,2] = torch.tensor(np.load(f'raw/Image{k+1}/wf_channel2.npy'))[200]
+                    frame[0,0] = torch.tensor(np.load(os.path.join(data_path, f'Image{image_index}/wf_channel0.npy')))[200]
+                    frame[0,1] = torch.tensor(np.load(os.path.join(data_path, f'Image{image_index}/wf_channel1.npy')))[200]
+                    frame[0,2] = torch.tensor(np.load(os.path.join(data_path, f'Image{image_index}/wf_channel2.npy')))[200]
                 else:
-                    gt = torch.tensor(np.load(f'raw/Image{k+1}/wf_mean.npy'))[1]
-                    frame = torch.tensor(np.load(f'raw/Image{k+1}/wf_channel1.npy'))[200][None,None,...].float().to(self.device)
+                    gt = torch.tensor(np.load(os.path.join(data_path, f'Image{image_index}/wf_channel1.npy')).mean(axis=0))[1]
+                    frame = torch.tensor(np.load(os.path.join(data_path, f'Image{image_index}/wf_channel1.npy')))[200][None,None,...].float().to(self.device)
                 frame = frame - frame.mean(dim=(2,3), keepdim=True)
                 output = self.model(frame).squeeze()
                 si_psnr_mean += scale_invariant_psnr(np.array(gt.cpu()), np.array(output.cpu())) / 120
@@ -137,6 +158,6 @@ class Trainer:
             'config': self.config
         }
 
-        print('Saving a checkpoint:')
+        log.info('Saving a checkpoint:')
         filename = self.checkpoint_dir + '/checkpoint.pth'
         torch.save(state, filename)
