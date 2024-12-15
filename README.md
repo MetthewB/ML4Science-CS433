@@ -9,7 +9,7 @@ ML4Science is a project focused on denoising images using various techniques and
 To run this project, you need to install the dependencies listed in `requirements.txt`. You can install them using the following command:
 
 ```bash
-pip install -r [requirements.txt](http://_vscodecontentref_/1)
+pip install -r requirements.txt
 ```
 
 ## Project Structure
@@ -71,11 +71,11 @@ ML4Science/
 │   ├── denoiser_selection.py       # Denoiser selection script
 │   ├── denoising_pipeline.py       # Denoising pipeline script
 │   └── explorations.ipynb          # Plot generation script
-├── [run.ipynb](http://_vscodecontentref_/2)               # Jupyter notebook to run the project
-├── [run.py](http://_vscodecontentref_/3)                  # Script to run the project
-├── [requirements.txt](http://_vscodecontentref_/4)        # Project dependencies
+├── run.ipynb               # Jupyter notebook to run the project
+├── run.py                  # Script to run the project
+├── requirements.txt        # Project dependencies
 ├── LICENSE.txt             # Project license
-└── [README.md](http://_vscodecontentref_/5)               # Project description and instructions
+└── README.md               # Project description and instructions
 ```
 
 ## Running TensorBoard
