@@ -1,6 +1,6 @@
 # ML4Science: Image Denoising Project
 
-This project focuses on improving image quality by reducing noise using state-of-the-art denoising techniques and models. The repository includes scripts for training and evaluating models, datasets (both raw and processed), and results of denoised images using various algorithms.
+This project focuses on improving image quality by reducing noise using state-of-the-art denoising techniques and models. The repository includes scripts for training and evaluating models, datasets (both raw and processed), and results of denoised images using various algorithms
 
 ---
 
