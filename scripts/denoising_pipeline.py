@@ -212,7 +212,7 @@ def process_image(image, ax, title, inset_size):
 
     # Display the image
     ax.imshow(image_copy, cmap='viridis')
-    ax.set_title(title, fontsize=15)
+    ax.set_title(title, fontsize=18)
     ax.axis('off')
 
     # Add white border inset to the original and the copied region
